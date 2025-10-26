@@ -49,4 +49,24 @@ export class ExamsService {
     const deletedExam = await this.examModel.delete({ _id: id });
     return deletedExam;
   }
+
+  async updateLogo(id: string, logoPath: string, user: IUser) {
+    const updatedExam = await this.examModel.findByIdAndUpdate(
+      id,
+      {
+        logo: logoPath,
+        updatedBy: {
+          _id: user._id,
+          email: user.email,
+        }
+      },
+      { new: true }
+    );
+
+    if (!updatedExam) {
+      throw new Error('exam not found');
+    }
+
+    return updatedExam;
+  }
 }

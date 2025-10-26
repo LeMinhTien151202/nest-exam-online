@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { IUser } from 'src/users/users.interface';
 import { InjectModel } from '@nestjs/mongoose';
 import { Role, RoleModel } from './schemas/role.schema';
+import mongoose from 'mongoose';
+import { ADMIN_ROLE } from 'src/decorator/customize';
 
 @Injectable()
 export class RolesService {
@@ -22,14 +24,31 @@ export class RolesService {
   }
 
   async findOne(id: string) {
-    return `This action returns a #${id} role`;
+    if (!mongoose.isValidObjectId(id)) {
+      throw new NotFoundException("permission is not exist");
+    }
+    const role =  await this.roleModel.findById(id)
+    .populate({path: 'permissions', select: {_id: -1, name: 1, apiPath: 1, method: 1}});
+    return role;
   }
 
   async update(id: string, updateRoleDto: UpdateRoleDto, user: IUser) {
-    return `This action updates a #${id} role`;
+    if (!mongoose.isValidObjectId(id)) {
+          throw new NotFoundException("role is not exist");
+        }
+        const updatedExam = await this.roleModel.updateOne({ _id: id }, { ...updateRoleDto, updatedAt: new Date(), updatedBy: {
+          _id: user._id,
+          email: user.email
+        }});
+        return updatedExam;
   }
 
   async remove(id: string, user: IUser) {
-    return `This action removes a #${id} role`;
+    const foundRole = await this.roleModel.findById(id);
+    if(foundRole.name === ADMIN_ROLE) {
+      throw new BadRequestException('Role not removeable');
+    }
+    await this.roleModel.updateOne({ _id: id }, {deletedBy: {_id: user._id, email: user.email}});
+    return await this.roleModel.deleteOne({ _id: id });
   }
 }

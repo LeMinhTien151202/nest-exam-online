@@ -6,6 +6,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { User as UserM, UserDocument, UserModel } from './schemas/user.schema';
 import mongoose from 'mongoose';
 import { IUser } from './users.interface';
+import aqp from 'api-query-params';
 @Injectable()
 export class UsersService {
 
@@ -15,7 +16,7 @@ export class UsersService {
 
   async findOneByUsername(username: string) {
     
-    let user = await this.userModel.findOne({ email: username });
+    const user = await this.userModel.findOne({ email: username }).populate({path: 'role', select: {name: 1}});
     return user;
   }
 
@@ -40,12 +41,39 @@ export class UsersService {
     return newUser;
   }
 
-  findAll() {
-    return `This action returns all users`;
-  }
+  async findAll(currentPage: number, limit: number, qs: any) {
+  const { filter, sort, population } = aqp(qs);
+  delete filter.current;
+  delete filter.pageSize;
+
+  const offset = (currentPage - 1) * limit;
+  const totalItems = await this.userModel.countDocuments(filter);
+  const totalPages = Math.ceil(totalItems / limit);
+
+  const result = await this.userModel.find(filter)
+    .skip(offset)
+    .limit(limit)
+    .sort(sort as any)
+    .populate(population)
+    .exec();
+
+  return {
+    meta: {
+      current: currentPage,
+      pageSize: limit,
+      pages: totalPages,
+      total: totalItems,
+    },
+    result,
+  };
+}
 
   async findOne(id: string) {
-    let user = await this.userModel.findOne({ _id: id }).select("-password")
+    if(!mongoose.isValidObjectId(id)) {
+      return "user không tồn tại";
+    }
+    const user = await this.userModel.findOne({ _id: id }).select("-password")
+    .populate({path: 'role', select: {_id: -1, name: 1}});
     return user;
   }
 
@@ -53,7 +81,7 @@ export class UsersService {
      if(!mongoose.isValidObjectId(id)) {
       throw new NotFoundException("user không tồn tại");
     }
-    let newUser = await this.userModel.updateOne({ _id: id }, { ...updateUserDto,
+    const newUser = await this.userModel.updateOne({ _id: id }, { ...updateUserDto,
      updatedAt: new Date(),
      updatedBy: {
       _id: user._id,

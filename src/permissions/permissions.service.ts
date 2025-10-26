@@ -5,7 +5,7 @@ import { IUser } from 'src/users/users.interface';
 import { InjectModel } from '@nestjs/mongoose';
 import { Permission, PermissionModel } from './schemas/permission.schema';
 import mongoose from 'mongoose';
-
+import aqp from 'api-query-params';
 @Injectable()
 export class PermissionsService {
   constructor(@InjectModel(Permission.name) private permissionModel: PermissionModel){
@@ -17,8 +17,32 @@ export class PermissionsService {
     return permission;
   }
 
-  async findAll() {
-    return await this.permissionModel.find();
+ async findAll(currentPage: number, limit: number, qs: any) {
+    const { filter, sort, population, projection } = aqp(qs);
+    delete filter.current;
+    delete filter.pageSize;
+
+  const offset = (currentPage - 1) * limit;
+  const totalItems = await this.permissionModel.countDocuments(filter);
+  const totalPages = Math.ceil(totalItems / limit);
+
+  const result = await this.permissionModel.find(filter)
+    .skip(offset)
+    .limit(limit)
+    .sort(sort as any)
+    .populate(population)
+    .select(projection as any)
+    .exec();
+
+  return {
+    meta: {
+      current: currentPage,
+      pageSize: limit,
+      pages: totalPages,
+      total: totalItems,
+    },
+    result,
+  };
   }
 
   async findOne(id: string) {

@@ -10,6 +10,7 @@ import { QuestionsModule } from './questions/questions.module';
 import { ExamsModule } from './exams/exams.module';
 import { ResultsModule } from './results/results.module';
 import { PermissionsModule } from './permissions/permissions.module';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -31,7 +32,8 @@ import { PermissionsModule } from './permissions/permissions.module';
     QuestionsModule,
     ExamsModule,
     ResultsModule,
-    PermissionsModule,],
+    PermissionsModule,
+    FilesModule,],
   controllers: [AppController],
   providers: [AppService],
 })

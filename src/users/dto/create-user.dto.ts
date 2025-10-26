@@ -1,4 +1,5 @@
-import { IsEmail, IsNotEmpty, IsOptional } from "class-validator";
+import { IsEmail, IsMongoId, IsNotEmpty, IsOptional } from "class-validator";
+import mongoose from "mongoose";
 
 export class CreateUserDto {
     @IsNotEmpty({message: "name không được trống"})
@@ -17,8 +18,8 @@ export class CreateUserDto {
     gender: string;
     @IsNotEmpty({message: "address không được trống"})
     address: string;
-    // @IsNotEmpty({message: "role không được trống"})
-    // @IsMongoId({message: "role khong dung dinh dang"})
-    // role: mongoose.Schema.Types.ObjectId;
+    @IsNotEmpty({message: "role không được trống"})
+    @IsMongoId({message: "role khong dung dinh dang"})
+    role: mongoose.Schema.Types.ObjectId;
 
 }

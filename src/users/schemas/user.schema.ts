@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
 import * as MongooseDelete from 'mongoose-delete';
 import { SoftDeleteDocument, SoftDeleteModel } from 'mongoose-delete';
+import { Role } from 'src/roles/schemas/role.schema';
 // import { Role } from 'src/roles/schemas/role.schema';
 
 // export type UserDocument = HydratedDocument<User>;
@@ -29,14 +30,8 @@ export class User {
   @Prop()
   address: string;
 
-  @Prop({type: Object})
-  company:  {
-      _id: mongoose.Schema.Types.ObjectId,
-      email: string
-    };
-
-//   @Prop({type: mongoose.Schema.Types.ObjectId, ref: Role.name })
-//   role: mongoose.Schema.Types.ObjectId;
+  @Prop({type: mongoose.Schema.Types.ObjectId, ref: Role.name })
+  role: mongoose.Schema.Types.ObjectId;
 
   @Prop()
   refreshToken: string;

@@ -16,3 +16,6 @@ export const User = createParamDecorator(
 
 export const IS_PUBLIC_PERMISSSION = 'isPublicPermission';
 export const SkipCheckPermission = () => SetMetadata(IS_PUBLIC_PERMISSSION, true);
+
+export const ADMIN_ROLE = "SUPER_ADMIN";
+export const USER_ROLE = "NORMAL_USER";

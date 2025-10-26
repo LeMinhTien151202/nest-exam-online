@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { RolesService } from 'src/roles/roles.service';
 import { IUser } from 'src/users/users.interface';
 import { UsersService } from 'src/users/users.service';
 
@@ -9,18 +10,18 @@ export class AuthService {
     constructor(private usersService: UsersService,
     private jwtService: JwtService,
     private readonly configService: ConfigService,
-    // private readonly rolesService: RolesService
+    private readonly rolesService: RolesService
   ) {}
     async validateUser(username: string, pass: string): Promise<any> {
     const user = await this.usersService.findOneByUsername(username);
     if (user) {
       const isValid = this.usersService.isValidPassword(pass, user.password);
       if (isValid === true) {
-        // const userRole = user.role as unknown as {_id : string, name : string};
-        // const temp = await this.rolesService.findOne(userRole._id);
+        const userRole = user.role as unknown as {_id : string, name : string};
+        const temp = await this.rolesService.findOne(userRole._id);
         const objUser = {
           ...user.toObject(),
-        //   permissions : temp?.permissions ?? []
+          permissions : temp?.permissions ?? []
         }
         return objUser;
       }
@@ -29,14 +30,16 @@ export class AuthService {
   }
 
   async login(user: IUser) {
-    const { _id, name, email } = user;
+    console.log('USER ROLE before sign:', user.role);
+    const { _id, name, email, role, permissions } = user;
     const payload = {
-            sub: "token login",
-            iss: "from server",
-            _id,
-            name,
-            email
-        };
+    sub: _id,
+    iss: 'from server',
+    _id,
+    name,
+    email,
+    role, // ✅ Thêm dòng này
+  };
     // const refresh_token = this.createRefreshToken(payload);
     // //update refresh token to db
     // await this.usersService.updateUserToken(_id, refresh_token);
@@ -54,8 +57,8 @@ export class AuthService {
              _id,
             name,
             email,
-            // role,
-            // permissions
+            role,
+            permissions
            }
         };
   }

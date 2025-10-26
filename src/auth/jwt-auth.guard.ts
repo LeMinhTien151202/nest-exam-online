@@ -37,21 +37,21 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     if (err || !user) {
       throw err || new UnauthorizedException("token không hợp lệ/ không có token");
     }
-    // const targetMethod = request.method;
-    // const targetEndPoint = request.route?.path as string;
-    // const permissions = user?.permissions ?? [];
-    // let isExist = permissions.find((permission) => {
-    //   return permission.apiPath === targetEndPoint && permission.method === targetMethod;
-    // })
-    // if(targetEndPoint.startsWith("/api/v1/auth")) {
-    //   isExist = true;
-    // }
-    // if(targetEndPoint.startsWith("/api/v1/subscribers")) {
-    //   isExist = true;
-    // }
-    // if(!isExist && !isSkipPermission) {
-    //   throw new ForbiddenException("ban khong co quyen truy cap");
-    // } 
+    const targetMethod = request.method;
+    const targetEndPoint = request.route?.path as string;
+    const permissions = user?.permissions ?? [];
+    let isExist = permissions.find((permission) => {
+      return permission.apiPath === targetEndPoint && permission.method === targetMethod;
+    })
+    if(targetEndPoint.startsWith("/api/v1/auth")) {
+      isExist = true;
+    }
+    if(targetEndPoint.startsWith("/api/v1/subscribers")) {
+      isExist = true;
+    }
+    if(!isExist && !isSkipPermission) {
+      throw new ForbiddenException("ban khong co quyen truy cap");
+    } 
     return user;
   }
 }
