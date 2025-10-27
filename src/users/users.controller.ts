@@ -7,12 +7,12 @@ import { IUser } from './users.interface';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Users') // nhóm hiển thị trong Swagger
-@ApiBearerAuth()  // hiển thị nút "Authorize" nhập JWT
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
+  @Public()
   @ApiBody({ type: CreateUserDto })
   @ApiOperation({ summary: 'created user info' })
   create(@Body() createUserDto: CreateUserDto, @User() user: IUser) {
@@ -20,6 +20,7 @@ export class UsersController {
   }
 
   @Get()
+  @Public()
   findAll(@Query("current") currentPage: string,
     @Query("pageSize") limit: string,
     @Query() qs: string) {

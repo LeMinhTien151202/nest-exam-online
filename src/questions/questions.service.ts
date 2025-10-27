@@ -5,6 +5,7 @@ import { IUser } from 'src/users/users.interface';
 import { InjectModel } from '@nestjs/mongoose';
 import { Question, QuestionModel } from './schemas/question.schema';
 import mongoose from 'mongoose';
+import aqp from 'api-query-params';
 
 @Injectable()
 export class QuestionsService {
@@ -18,8 +19,32 @@ export class QuestionsService {
     return question;
   }
 
-  async findAll() {
-    return await this.questionModel.find();
+  async findAll(currentPage: number, limit: number, qs: any) {
+    const { filter, sort, population, projection } = aqp(qs);
+    delete filter.current;
+    delete filter.pageSize;
+
+  const offset = (currentPage - 1) * limit;
+  const totalItems = await this.questionModel.countDocuments(filter);
+  const totalPages = Math.ceil(totalItems / limit);
+
+  const result = await this.questionModel.find(filter)
+    .skip(offset)
+    .limit(limit)
+    .sort(sort as any)
+    .populate(population)
+    .select(projection as any)
+    .exec();
+
+  return {
+    meta: {
+      current: currentPage,
+      pageSize: limit,
+      pages: totalPages,
+      total: totalItems,
+    },
+    result,
+  };
   }
 
   async findOne(id: string) {

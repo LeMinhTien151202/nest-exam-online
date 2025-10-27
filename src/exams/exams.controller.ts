@@ -1,12 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, UnprocessableEntityException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, UnprocessableEntityException, Query } from '@nestjs/common';
 import { ExamsService } from './exams.service';
 import { CreateExamDto } from './dto/create-exam.dto';
 import { UpdateExamDto } from './dto/update-exam.dto';
-import { ResponseMessage, User } from 'src/decorator/customize';
+import { Public, ResponseMessage, User } from 'src/decorator/customize';
 import { IUser } from 'src/users/users.interface';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FilesService } from 'src/files/files.service';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Exams')
 @Controller('exams')
 export class ExamsController {
   constructor(private readonly examsService: ExamsService,
@@ -14,16 +16,22 @@ export class ExamsController {
   ) {}
 
   @Post()
+  @ResponseMessage('Tạo môn học thành công')
   create(@Body() createExamDto: CreateExamDto, @User() user: IUser) {
     return this.examsService.create(createExamDto, user);
   }
 
   @Get()
-  findAll() {
-    return this.examsService.findAll();
+  @ResponseMessage('Lấy danh sách bài thi')
+  @Public()
+  findAll(@Query("current") currentPage: string,
+    @Query("pageSize") limit: string,
+    @Query() qs: string) {
+    return this.examsService.findAll(+currentPage, +limit, qs);
   }
 
   @Get(':id')
+  @ResponseMessage('Lấy bài thi theo id thành công')
   findOne(@Param('id') id: string) {
     return this.examsService.findOne(id);
   }
@@ -63,6 +71,7 @@ export class ExamsController {
   }
 
   @Patch(':id')
+  @ResponseMessage('cập nhật bài thi theo id thành công')
   update(@Param('id') id: string, @Body() updateExamDto: UpdateExamDto, @User() user: IUser) {
     return this.examsService.update(id, updateExamDto, user);
   }

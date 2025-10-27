@@ -4,7 +4,9 @@ import { CreateResultDto } from './dto/create-result.dto';
 import { UpdateResultDto } from './dto/update-result.dto';
 import { IUser } from 'src/users/users.interface';
 import { User } from 'src/decorator/customize';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Results')
 @Controller('results')
 export class ResultsController {
   constructor(private readonly resultsService: ResultsService) {}

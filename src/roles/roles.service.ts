@@ -6,6 +6,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Role, RoleModel } from './schemas/role.schema';
 import mongoose from 'mongoose';
 import { ADMIN_ROLE } from 'src/decorator/customize';
+import aqp from 'api-query-params';
 
 @Injectable()
 export class RolesService {
@@ -19,8 +20,32 @@ export class RolesService {
     return createdRole;  
   }
 
-  async findAll() {
-    return `This action returns all roles`;
+  async findAll(currentPage: number, limit: number, qs: any) {
+    const { filter, sort, population, projection } = aqp(qs);
+    delete filter.current;
+    delete filter.pageSize;
+
+  const offset = (currentPage - 1) * limit;
+  const totalItems = await this.roleModel.countDocuments(filter);
+  const totalPages = Math.ceil(totalItems / limit);
+
+  const result = await this.roleModel.find(filter)
+    .skip(offset)
+    .limit(limit)
+    .sort(sort as any)
+    .populate(population)
+    .select(projection as any)
+    .exec();
+
+  return {
+    meta: {
+      current: currentPage,
+      pageSize: limit,
+      pages: totalPages,
+      total: totalItems,
+    },
+    result,
+  };
   }
 
   async findOne(id: string) {

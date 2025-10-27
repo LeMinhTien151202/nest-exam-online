@@ -6,6 +6,7 @@ import { VersioningType } from '@nestjs/common';
 import { TransformInterceptor } from './core/transform.interceptor';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(
@@ -20,21 +21,45 @@ async function bootstrap() {
     defaultVersion: '1', // Version mặc định
     prefix: 'api/v', // Prefix cho version
   });
-
+  app.use(cookieParser());
    // Swagger Configuration
+  // const config = new DocumentBuilder()
+  //   .setTitle('Exam Online API')
+  //   .setDescription('API documentation for Exam Online project')
+  //   .setVersion('1.0')
+  //   .addBearerAuth() // hỗ trợ nhập token JWT
+  //   .build();
+  //   // 👇 bật deep scan route metadata
+  // const document = SwaggerModule.createDocument(app, config, {
+  //   deepScanRoutes: true,
+  // });
+  // SwaggerModule.setup('api/docs', app, document, {
+  //   swaggerOptions: { persistAuthorization: true }, // giữ token khi refresh
+  // });
+   //config swagger
   const config = new DocumentBuilder()
-    .setTitle('Exam Online API')
-    .setDescription('API documentation for Exam Online project')
+    .setTitle('NestJS Series APIs Document')
+    .setDescription('All Modules APIs')
     .setVersion('1.0')
-    .addBearerAuth() // hỗ trợ nhập token JWT
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'Bearer',
+        bearerFormat: 'JWT',
+        in: 'header',
+      },
+      'token',
+    )
+    .addSecurityRequirements('token')
     .build();
-    // 👇 bật deep scan route metadata
-  const document = SwaggerModule.createDocument(app, config, {
-    deepScanRoutes: true,
-  });
+  const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document, {
-    swaggerOptions: { persistAuthorization: true }, // giữ token khi refresh
-  });
+    swaggerOptions: {
+      persistAuthorization: true,
+    }
+  }
+  );
+
 
   // Chạy server
   const configService = app.get(ConfigService);
